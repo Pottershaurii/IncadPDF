@@ -1,7 +1,7 @@
 document.getElementById('fileInput').addEventListener('change', handleFileSelect);
 
 let imageCount = 0;
-const imagesPerPage = 4;
+const imagesPerPage = 6;
 const maxFileSize = 5 * 1024 * 1024; // 5MB
 
 function handleFileSelect(event) {
@@ -107,6 +107,10 @@ function exportToPdf() {
         return;
     }
 
+    // Ocultar todos los botones de eliminar antes de la exportación
+    const deleteButtons = document.querySelectorAll('.deleteButton');
+    deleteButtons.forEach(button => button.style.display = 'none');
+
     const promises = Array.from(pages).map((page, index) => {
         return html2canvas(page, {
             scale: quality * 4, // Aumentado de 2 a 4 para mayor calidad
@@ -142,8 +146,12 @@ function exportToPdf() {
     });
 
     Promise.all(promises).then(() => {
+        // Mostrar los botones de eliminar nuevamente después de la exportación
+        deleteButtons.forEach(button => button.style.display = 'flex');
         pdf.save('imagenes.pdf');
     }).catch(error => {
+        // Asegurarse de mostrar los botones incluso si hay un error
+        deleteButtons.forEach(button => button.style.display = 'flex');
         document.getElementById('errorMessage').textContent = 'Error al generar el PDF';
         console.error(error);
     });
