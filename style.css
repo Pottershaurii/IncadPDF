@@ -35,6 +35,58 @@ body {
     position: relative;
 }
 
+.page-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 10px 20px;
+    border-bottom: 2px solid #eee;
+}
+
+.incad-logo {
+    height: 60px;
+    width: auto;
+    object-fit: contain;
+}
+
+.client-logo {
+    height: 35px;
+    width: auto;
+    object-fit: contain;
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: 24px;
+    color: #333;
+}
+
+.page-footer {
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    padding: 10px 20px;
+    border-top: 2px solid #eee;
+}
+
+.page-footer p {
+    margin: 5px 0;
+    color: #898989;
+    font-size: 15px;
+}
+
+.page-number {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    font-size: 15px;
+    color: #666;
+}
+
 .imageItem {
     text-align: center;
     margin-bottom: 20px;
@@ -51,6 +103,25 @@ body {
     height: auto;
     max-height: 300px;
     object-fit: contain;
+}
+
+.image-name {
+    margin-top: 5px;
+    cursor: pointer;
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
+.image-name:hover {
+    background-color: #f0f0f0;
+}
+
+.editable {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 2px 5px;
+    outline: none;
+    min-width: 50px;
 }
 
 .deleteButton {

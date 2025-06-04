@@ -3,6 +3,34 @@ document.getElementById('fileInput').addEventListener('change', handleFileSelect
 let imageCount = 0;
 const imagesPerPage = 6;
 const maxFileSize = 5 * 1024 * 1024; // 5MB
+const incadLogo = 'Incad.jpg'; // LOGO INCAD
+let clientLogoSrc = '#'; // Variable global para almacenar el logo del cliente
+
+// Precarga el logo de INCAD
+const preloadIncadLogo = new Image();
+preloadIncadLogo.crossOrigin = "anonymous";
+preloadIncadLogo.src = incadLogo;
+
+document.getElementById('headerTitle').addEventListener('input', function(e) {
+    document.querySelectorAll('.document-title').forEach(title => {
+        title.textContent = e.target.value || 'Documento sin título';
+    });
+});
+
+document.getElementById('clientLogo').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            clientLogoSrc = e.target.result;
+            document.querySelectorAll('.client-logo').forEach(logo => {
+                logo.src = clientLogoSrc;
+            });
+            reorganizePages();
+        };
+        reader.readAsDataURL(file);
+    }
+});
 
 function handleFileSelect(event) {
     const files = event.target.files;
@@ -12,13 +40,11 @@ function handleFileSelect(event) {
     for (let i = 0; i < files.length; i++) {
         const file = files[i];
         
-        // Validación de tipo de archivo
         if (!file.type.startsWith('image/')) {
             errorMessage.textContent = `Error: ${file.name} no es una imagen válida`;
             continue;
         }
         
-        // Validación de tamaño
         if (file.size > maxFileSize) {
             errorMessage.textContent = `Error: ${file.name} excede el tamaño máximo de 5MB`;
             continue;
@@ -26,7 +52,6 @@ function handleFileSelect(event) {
 
         const reader = new FileReader();
         reader.onload = function(e) {
-            // Extraer solo el nombre del archivo sin la extensión
             const fileName = file.name.replace(/\.[^/.]+$/, "");
             addImageToPage(e.target.result, fileName);
         };
@@ -37,15 +62,52 @@ function handleFileSelect(event) {
     }
 }
 
+function makeEditable(element) {
+    element.contentEditable = true;
+    element.classList.add('editable');
+    element.addEventListener('blur', function() {
+        element.contentEditable = false;
+        element.classList.remove('editable');
+    });
+    element.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            element.blur();
+        }
+    });
+}
+
 function addImageToPage(src, name) {
     const pageContainer = document.getElementById('pageContainer');
-
     let pages = document.getElementsByClassName('page');
     let lastPage = pages[pages.length - 1];
 
     if (!lastPage || lastPage.getElementsByClassName('imageItem').length >= imagesPerPage) {
         lastPage = document.createElement('div');
         lastPage.classList.add('page');
+        
+        const header = document.createElement('div');
+        header.classList.add('page-header');
+        header.innerHTML = `
+            <img src="${incadLogo}" alt="INCAD Logo" class="incad-logo" crossorigin="anonymous">
+            <h1 class="document-title">${document.getElementById('headerTitle').value || 'Documento sin título'}</h1>
+            <img src="${clientLogoSrc}" alt="Logo Cliente" class="client-logo">
+        `;
+        lastPage.appendChild(header);
+        
+        const pageNumber = document.createElement('div');
+        pageNumber.classList.add('page-number');
+        pageNumber.textContent = pages.length + 1;
+        lastPage.appendChild(pageNumber);
+
+        const footer = document.createElement('div');
+        footer.classList.add('page-footer');
+        footer.innerHTML = `
+            <p>INCAD SERVICE 2025 ®</p>
+            <p>Carlos Rosales B. Contacto: +51 969 991 467 crosales@incad-service.com</p>
+        `;
+        lastPage.appendChild(footer);
+        
         pageContainer.appendChild(lastPage);
     }
 
@@ -59,12 +121,19 @@ function addImageToPage(src, name) {
         imageItem.remove();
         imageCount--;
         document.getElementById('imageCount').textContent = `Imágenes cargadas: ${imageCount}`;
-        
-        // Reorganizar páginas si es necesario
         reorganizePages();
     };
 
-    imageItem.innerHTML = `<img src="${src}" alt="${name}"><br>${name}`;
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = name;
+    nameSpan.classList.add('image-name');
+    nameSpan.onclick = function() {
+        makeEditable(this);
+        this.focus();
+    };
+
+    imageItem.innerHTML = `<img src="${src}" alt="${name}"><br>`;
+    imageItem.appendChild(nameSpan);
     imageItem.appendChild(deleteButton);
     lastPage.appendChild(imageItem);
 
@@ -77,29 +146,38 @@ function reorganizePages() {
     const allImages = document.querySelectorAll('.imageItem');
     const pages = document.querySelectorAll('.page');
     
-    // Eliminar todas las páginas
     pages.forEach(page => page.remove());
     
-    // Volver a añadir todas las imágenes
     imageCount = 0;
     allImages.forEach(image => {
         const src = image.querySelector('img').src;
-        const name = image.querySelector('img').alt;
+        const name = image.querySelector('.image-name').textContent;
         addImageToPage(src, name);
     });
 }
 
-function exportToPdf() {
+async function waitForImagesLoaded(page) {
+    const images = page.getElementsByTagName('img');
+    const promises = Array.from(images).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+            img.onload = resolve;
+            img.onerror = resolve;
+        });
+    });
+    await Promise.all(promises);
+}
+
+async function exportToPdf() {
     if (!window.jspdf) {
         console.error("jsPDF no está cargado");
         return;
     }
 
-    const orientation = document.getElementById('pdfOrientation').value;
     const quality = parseFloat(document.getElementById('pdfQuality').value);
     
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF(orientation, 'mm', 'a4');
+    const pdf = new jsPDF('p', 'mm', 'a4');
     let pages = document.getElementsByClassName('page');
 
     if (pages.length === 0) {
@@ -107,26 +185,29 @@ function exportToPdf() {
         return;
     }
 
-    // Ocultar todos los botones de eliminar antes de la exportación
     const deleteButtons = document.querySelectorAll('.deleteButton');
     deleteButtons.forEach(button => button.style.display = 'none');
 
-    const promises = Array.from(pages).map((page, index) => {
-        return html2canvas(page, {
-            scale: quality * 4, // Aumentado de 2 a 4 para mayor calidad
-            useCORS: true,
-            logging: false,
-            imageTimeout: 0,
-            allowTaint: true,
-            backgroundColor: '#ffffff'
-        }).then(canvas => {
-            const imgData = canvas.toDataURL('image/jpeg', Math.max(quality, 0.95)); // Aumentada la calidad mínima
-            const pageWidth = orientation === 'p' ? 210 : 297;
-            const pageHeight = orientation === 'p' ? 297 : 210;
+    try {
+        for (let i = 0; i < pages.length; i++) {
+            const page = pages[i];
+            await waitForImagesLoaded(page);
+
+            const canvas = await html2canvas(page, {
+                scale: quality * 4,
+                useCORS: true,
+                logging: false,
+                imageTimeout: 0,
+                allowTaint: true,
+                backgroundColor: '#ffffff'
+            });
+
+            const imgData = canvas.toDataURL('image/jpeg', Math.max(quality, 0.95));
+            const pageWidth = 210;
+            const pageHeight = 297;
             
-            if (index !== 0) pdf.addPage();
+            if (i !== 0) pdf.addPage();
             
-            // Calcular dimensiones manteniendo la proporción
             const imgRatio = canvas.height / canvas.width;
             const pageRatio = pageHeight / pageWidth;
             
@@ -142,17 +223,13 @@ function exportToPdf() {
             const y = (pageHeight - imgHeight) / 2;
             
             pdf.addImage(imgData, 'JPEG', x, y, imgWidth, imgHeight, null, 'FAST');
-        });
-    });
+        }
 
-    Promise.all(promises).then(() => {
-        // Mostrar los botones de eliminar nuevamente después de la exportación
-        deleteButtons.forEach(button => button.style.display = 'flex');
         pdf.save('imagenes.pdf');
-    }).catch(error => {
-        // Asegurarse de mostrar los botones incluso si hay un error
-        deleteButtons.forEach(button => button.style.display = 'flex');
-        document.getElementById('errorMessage').textContent = 'Error al generar el PDF';
+    } catch (error) {
         console.error(error);
-    });
+        document.getElementById('errorMessage').textContent = 'Error al generar el PDF';
+    } finally {
+        deleteButtons.forEach(button => button.style.display = 'flex');
+    }
 }

@@ -8,15 +8,10 @@
 </head>
 <body>
     <div class="controls">
-        <input type="file" id="fileInput" multiple accept="image/*">
+        <input type="text" id="headerTitle" placeholder="Título del documento" >
+        <input type="file" id="fileInput" multiple accept="image/*" data-text="Importar">
+        <input type="file" id="clientLogo" accept="image/*" data-text="Logo">
         <div class="pdf-options">
-            <label>
-                Orientación:
-                <select id="pdfOrientation">
-                    <option value="p">Vertical</option>
-                    <option value="l">Horizontal</option>
-                </select>
-            </label>
             <label>
                 Calidad:
                 <select id="pdfQuality">
