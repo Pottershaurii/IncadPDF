@@ -9,13 +9,30 @@
 <body>
     <div class="controls">
         <input type="file" id="fileInput" multiple accept="image/*">
+        <div class="pdf-options">
+            <label>
+                Orientación:
+                <select id="pdfOrientation">
+                    <option value="p">Vertical</option>
+                    <option value="l">Horizontal</option>
+                </select>
+            </label>
+            <label>
+                Calidad:
+                <select id="pdfQuality">
+                    <option value="0.7">Normal</option>
+                    <option value="0.9">Alta</option>
+                    <option value="1">Máxima</option>
+                </select>
+            </label>
+        </div>
         <button onclick="exportToPdf()">Exportar a PDF</button>
         <p id="imageCount">Imágenes cargadas: 0</p>
     </div>
+    <div id="errorMessage" class="error-message"></div>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <div id="pageContainer"></div>
     <script src="script.js"></script>
