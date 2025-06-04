@@ -109,9 +109,14 @@ function exportToPdf() {
 
     const promises = Array.from(pages).map((page, index) => {
         return html2canvas(page, {
-            scale: quality * 2 // Aumentar la escala para mejor calidad
+            scale: quality * 4, // Aumentado de 2 a 4 para mayor calidad
+            useCORS: true,
+            logging: false,
+            imageTimeout: 0,
+            allowTaint: true,
+            backgroundColor: '#ffffff'
         }).then(canvas => {
-            const imgData = canvas.toDataURL('image/jpeg', quality);
+            const imgData = canvas.toDataURL('image/jpeg', Math.max(quality, 0.95)); // Aumentada la calidad mínima
             const pageWidth = orientation === 'p' ? 210 : 297;
             const pageHeight = orientation === 'p' ? 297 : 210;
             
@@ -132,7 +137,7 @@ function exportToPdf() {
             const x = (pageWidth - imgWidth) / 2;
             const y = (pageHeight - imgHeight) / 2;
             
-            pdf.addImage(imgData, 'JPEG', x, y, imgWidth, imgHeight);
+            pdf.addImage(imgData, 'JPEG', x, y, imgWidth, imgHeight, null, 'FAST');
         });
     });
 
