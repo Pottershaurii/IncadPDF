@@ -3,121 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INCAD SERVICE - Organizador de Imágenes</title>
+    <title>INCAD Service - Organizador de Imágenes</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="app-container">
-        <header class="app-header">
-            <div class="logo-container">
-                <img src="Incad.jpg" alt="INCAD Logo" class="app-logo">
+    <div class="app-header">
+        <div class="brand-section">
+            <div class="brand-logo">
+                <img src="FondoLogo.png" alt="Incad Service Logo" class="logo-image">
             </div>
-            <h1 class="app-title">ORGANIZADOR INCAD SERVICE</h1>
-            <div class="theme-toggle">
-                <button id="themeToggle" aria-label="Toggle dark/light mode">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sun-icon"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="moon-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                </button>
-            </div>
-        </header>
-
-        <main class="app-main">
-            <div class="control-panel">
-                <div class="panel-section">
-                    <h2>Configuración del Documento</h2>
-                    <div class="input-group">
-                        <label for="headerTitle">Título del documento</label>
-                        <input type="text" id="headerTitle" placeholder="Título del documento">
-                    </div>
-                    <div class="input-group">
-                        <label for="clientLogo">Logo del cliente</label>
-                        <div class="file-input-wrapper">
-                            <input type="file" id="clientLogo" accept="image/*">
-                            <button class="file-input-button">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                                Seleccionar Logo
-                            </button>
-                            <span class="file-name" id="clientLogoName">Ningún archivo seleccionado</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="panel-section">
-                    <h2>Imágenes</h2>
-                    <div class="input-group">
-                        <label for="fileInput">Importar imágenes</label>
-                        <div class="file-input-wrapper">
-                            <input type="file" id="fileInput" multiple accept="image/*">
-                            <button class="file-input-button">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                                Importar
-                            </button>
-                            <span class="file-name" id="importCount">Ningún archivo seleccionado</span>
-                        </div>
-                    </div>
-                    <div class="stats-container">
-                        <div class="stat-item">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                            <span id="imageCount">0</span>
-                            <span>Imágenes</span>
-                        </div>
-                        <div class="stat-item">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h14a2 2 0 0 0 2-2V7.5L14.5 2H6a2 2 0 0 0-2 2v4"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M2 15h10"></path><path d="M9 18l3-3-3-3"></path></svg>
-                            <span id="pageCount">0</span>
-                            <span>Páginas</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="panel-section">
-                    <h2>Exportar</h2>
-                    <div class="input-group">
-                        <label for="pdfQuality">Calidad del PDF</label>
-                        <select id="pdfQuality" class="custom-select">
-                            <option value="0.9">Normal</option>
-                            <option value="1.2">Alta</option>
-                            <option value="1.5">Máxima</option>
-                        </select>
-                    </div>
-                    <button id="exportBtn" class="primary-button" onclick="exportToPdf()">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                        Exportar a PDF
-                    </button>
-                </div>
-            </div>
-
-            <div class="preview-container">
-                <div class="preview-header">
-                    <h2>Vista Previa</h2>
-                    <div class="zoom-controls">
-                        <button id="zoomOut" class="icon-button">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
-                        </button>
-                        <span id="zoomLevel">100%</span>
-                        <button id="zoomIn" class="icon-button">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
-                        </button>
-                    </div>
-                </div>
-                <div id="errorMessage" class="error-message"></div>
-                <div class="page-preview-wrapper">
-                    <div id="pageContainer"></div>
-                </div>
-            </div>
-        </main>
-
-        <div id="dropZone" class="drop-zone">
-            <div class="drop-zone-content">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                <h3>Suelta las imágenes aquí</h3>
-                <p>O haz clic para seleccionar archivos</p>
+            <div class="brand-text">
+                <h1>INCAD SERVICE</h1>
+                <p>Organizador Pre-Reporte</p>
             </div>
         </div>
     </div>
 
+    <div class="main-container">
+        <div class="controls-panel">
+            <div class="control-group">
+                <label for="headerTitle">Título del Documento</label>
+                <input type="text" id="headerTitle" placeholder="Ingrese el título del documento">
+            </div>
+
+            <!-- Importar Imágenes / Logo Cliente -->
+            <div class="control-row">
+                <div class="file-input-wrapper">
+                    <input type="file" id="fileInput" multiple accept="image/*">
+                    <label for="fileInput" class="file-input-label primary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17,8 12,3 7,8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        Importar Imágenes
+                    </label>
+                </div>
+                <div class="file-input-wrapper">
+                    <input type="file" id="clientLogo" accept="image/*">
+                    <label for="clientLogo" class="file-input-label secondary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21,15 16,10 5,21"/>
+                        </svg>
+                        Logo Cliente
+                    </label>
+                </div>
+            </div>
+
+            <!-- Calidad de Exportación -->
+            <div class="quality-section">
+                <label for="pdfQuality">Calidad de Exportación</label>
+                <select id="pdfQuality">
+                    <option value="0.9">Normal (Rápido)</option>
+                    <option value="1.2">Alta (Recomendado)</option>
+                    <option value="1.5">Máxima (Lento)</option>
+                </select>
+            </div>
+
+            <!-- Botones Exportar / Limpiar y contador -->
+            <div class="action-section">
+                <button onclick="exportToPdf()" class="export-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7,10 12,15 17,10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Exportar a PDF
+                </button>
+
+                <button id="clearAllBtn" class="clear-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                        <path d="M10 11v6"/>
+                        <path d="M14 11v6"/>
+                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                    </svg>
+                    Limpiar Todo
+                </button>
+
+                <div class="image-counter">
+                    <span id="imageCount">Imágenes cargadas: 0</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+        <div id="pageContainer" class="page-container"></div>
+    </div>
+
+    <!-- Librerías y script principal -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="script.js"></script>
