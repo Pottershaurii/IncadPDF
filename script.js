@@ -208,7 +208,10 @@ async function exportToPdf() {
   const pdf = new jsPDF({ format: 'a4', unit: 'px' });
   const pages = document.querySelectorAll('.page');
   for (let i = 0; i < pages.length; i++) {
-    const canvas = await html2canvas(pages[i]);
+    const canvas = await html2canvas(pages[i], {
+  scale: window.devicePixelRatio * 2,  // 2× resolución (o más si lo necesitas)
+  useCORS: true,                       // si tienes imágenes externas
+});
     const imgData = canvas.toDataURL('image/png');
     pdf.addImage(imgData, 'PNG', 0, 0,
       pdf.internal.pageSize.getWidth(),
