@@ -209,15 +209,19 @@ async function exportToPdf() {
   const pages = document.querySelectorAll('.page');
   for (let i = 0; i < pages.length; i++) {
     const canvas = await html2canvas(pages[i], {
-  scale: window.devicePixelRatio * 2,  // 2× resolución (o más si lo necesitas)
-  useCORS: true,                       // si tienes imágenes externas
-});
+      scale: window.devicePixelRatio * 2,
+      useCORS: true,
+    });
     const imgData = canvas.toDataURL('image/png');
-    pdf.addImage(imgData, 'PNG', 0, 0,
+    pdf.addImage(
+      imgData, 'PNG',
+      0, 0,
       pdf.internal.pageSize.getWidth(),
       pdf.internal.pageSize.getHeight()
     );
     if (i < pages.length - 1) pdf.addPage();
   }
-  pdf.save(`${document.getElementById('headerTitle').value || 'Reporte'}.pdf`);
+  pdf.save(
+    `${document.getElementById('headerTitle').value || 'Reporte'}.pdf`
+  );
 }
