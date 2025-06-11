@@ -101,6 +101,162 @@ body {
     box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
 }
 
+/* Sección de modo */
+.mode-section {
+    margin-bottom: 1.5rem;
+}
+
+.mode-section label {
+    display: block;
+    font-weight: 500;
+    color: #34495e;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.mode-selector {
+    display: flex;
+    gap: 0.5rem;
+    background: #f8f9fa;
+    padding: 0.25rem;
+    border-radius: 8px;
+    border: 2px solid #e1e8ed;
+}
+
+.mode-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: transparent;
+    color: #6c757d;
+}
+
+.mode-btn.active {
+    background: #4a90e2;
+    color: white;
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+}
+
+.mode-btn:hover:not(.active) {
+    background: #e9ecef;
+    color: #495057;
+}
+
+/* Controles de modo */
+.mode-controls {
+    transition: all 0.3s ease;
+}
+
+/* Información del modo dividido */
+.divided-mode-info {
+    margin-bottom: 1.5rem;
+}
+
+.info-card {
+    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid #4a90e2;
+}
+
+.info-card h3 {
+    color: #1565c0;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.info-card ol {
+    color: #37474f;
+    padding-left: 1.2rem;
+    line-height: 1.7;
+}
+
+.info-card li {
+    margin-bottom: 0.5rem;
+}
+
+/* Selector de tipo */
+.type-selector-section {
+    margin-bottom: 1.5rem;
+}
+
+.type-selector-section label {
+    display: block;
+    font-weight: 500;
+    color: #34495e;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.type-selector {
+    display: flex;
+    gap: 0.5rem;
+    background: #f8f9fa;
+    padding: 0.25rem;
+    border-radius: 8px;
+    border: 2px solid #e1e8ed;
+}
+
+.type-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: transparent;
+    color: #6c757d;
+}
+
+.type-btn.active {
+    background: #28a745;
+    color: white;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+.type-btn:hover:not(.active) {
+    background: #e9ecef;
+    color: #495057;
+}
+
+/* Sección de estado */
+.status-section {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.status-item {
+    background: #f8f9fa;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    min-width: 140px;
+    text-align: center;
+}
+
+.status-label {
+    display: block;
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.status-count {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
 .control-row {
     display: flex;
     gap: 1rem;
@@ -287,7 +443,7 @@ body {
     background: white;
     width: 100%;
     max-width: 800px;
-    min-height: 1131px; /* Proporción A4 */
+    min-height: 1131px;
     padding: 2rem;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
     border-radius: 8px;
@@ -305,13 +461,13 @@ body {
     align-items: center;
     margin: 0 -2rem 1rem;
     margin-bottom: 1rem;
-    padding: 0;              /* quita padding extra */
-    border: none;            /* elimina cualquier borde */
-    background: none;        /* fondo transparente */
-    box-shadow: none;        /* quita sombra */
-    border-radius: 0;        /* sin esquinas redondeadas */
-    border-bottom: 2px solid #dcdcdca8;  /* color y grosor al gusto */
-    padding-bottom: 0.5rem;         /* un pequeño espacio antes de las imágenes */
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+    border-bottom: 2px solid #dcdcdca8;
+    padding-bottom: 0.5rem;
 }
 
 .incad-logo {
@@ -344,12 +500,12 @@ body {
     right: 2rem;
     text-align: center;
     margin: 1rem -2rem 0; 
-    padding: 0;              /* quita padding */
-    border: none;            /* elimina línea superior */
-    background: none;        /* fondo transparente */
-    border-radius: 0;        /* sin esquinas */
-    box-shadow: none;        /* sin sombra */
-    border-top: 2px solid #dcdcdca8;     /* el mismo color y grosor para armonía */
+    padding: 0;
+    border: none;
+    background: none;
+    border-radius: 0;
+    box-shadow: none;
+    border-top: 2px solid #dcdcdca8;
     padding-top: 0.5rem;
 }
 
@@ -376,7 +532,7 @@ body {
     font-weight: 500;
 }
 
-/* Items de imagen - SIN BORDES Y SIN NOMBRES VISIBLES */
+/* Items de imagen */
 .imageItem {
     margin-bottom: 1.7rem;
     position: relative;
@@ -385,16 +541,13 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* ya no hay fondo, border ni padding */
 }
-
 
 .imageItem img {
     max-width: 100%;
     height: auto;
     max-height: 300px;
     object-fit: contain;
-    /* sin border-radius ni sombra */
 }
 
 .imageItem:hover .deleteButton {
@@ -404,10 +557,10 @@ body {
 .image-name {
     margin-top: 0.5rem;
     cursor: pointer;
-    display: block;          /* siempre visible */
-    background: transparent; /* sin fondo */
-    border: none;            /* sin borde */
-    padding: 0;              /* sin padding */
+    display: block;
+    background: transparent;
+    border: none;
+    padding: 0;
     font-weight: 500;
     color: #2c3e50;
 }
@@ -418,7 +571,6 @@ body {
 }
 
 .editable {
-    /* puedes ajustar si quieres otro estilo */
     border-bottom: 1px dashed #4a90e2 !important;
     background: transparent !important;
 }
@@ -498,6 +650,22 @@ body {
         flex-direction: column;
         text-align: center;
         gap: 0.5rem;
+    }
+
+    .status-section {
+        flex-direction: column;
+    }
+
+    .status-item {
+        min-width: auto;
+    }
+
+    .mode-selector {
+        flex-direction: column;
+    }
+
+    .type-selector {
+        flex-direction: column;
     }
 }
 

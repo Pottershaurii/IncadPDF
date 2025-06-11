@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>INCAD Service - Organizador de Imágenes</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -27,29 +27,103 @@
                 <input type="text" id="headerTitle" placeholder="Ingrese el título del documento">
             </div>
 
-            <!-- Importar Imágenes / Logo Cliente -->
-            <div class="control-row">
-                <div class="file-input-wrapper">
-                    <input type="file" id="fileInput" multiple accept="image/*">
-                    <label for="fileInput" class="file-input-label primary">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="17,8 12,3 7,8"/>
-                            <line x1="12" y1="3" x2="12" y2="15"/>
-                        </svg>
-                        Importar Imágenes
-                    </label>
+            <!-- Selector de Modo -->
+            <div class="mode-section">
+                <label>Modo de Organización</label>
+                <div class="mode-selector">
+                    <button id="normalModeBtn" class="mode-btn active">Modo Normal</button>
+                    <button id="dividedModeBtn" class="mode-btn">Modo Dividido (Impares/Pares)</button>
                 </div>
-                <div class="file-input-wrapper">
-                    <input type="file" id="clientLogo" accept="image/*">
-                    <label for="clientLogo" class="file-input-label secondary">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                            <circle cx="8.5" cy="8.5" r="1.5"/>
-                            <polyline points="21,15 16,10 5,21"/>
-                        </svg>
-                        Logo Cliente
-                    </label>
+            </div>
+
+            <!-- Controles para Modo Normal -->
+            <div id="normalControls" class="mode-controls">
+                <div class="control-row">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="fileInput" multiple accept="image/*">
+                        <label for="fileInput" class="file-input-label primary">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17,8 12,3 7,8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            Importar Imágenes
+                        </label>
+                    </div>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="clientLogo" accept="image/*">
+                        <label for="clientLogo" class="file-input-label secondary">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21,15 16,10 5,21"/>
+                            </svg>
+                            Logo Cliente
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controles para Modo Dividido -->
+            <div id="dividedControls" class="mode-controls" style="display: none;">
+                <div class="divided-mode-info">
+                    <div class="info-card">
+                        <h3>Instrucciones - Modo Dividido</h3>
+                        <ol>
+                            <li>Selecciona "Impares" y carga todas las imágenes impares</li>
+                            <li>Selecciona "Pares" y carga todas las imágenes pares</li>
+                            <li>Las imágenes se renombrarán automáticamente y se intercalarán</li>
+                            <li>Los nombres se ajustarán según la secuencia (1,3,5... para impares / 2,4,6... para pares)</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="type-selector-section">
+                    <label>Tipo de Imágenes a Cargar</label>
+                    <div class="type-selector">
+                        <button id="oddTypeBtn" class="type-btn active">Impares</button>
+                        <button id="evenTypeBtn" class="type-btn">Pares</button>
+                    </div>
+                </div>
+
+                <div class="control-row">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="dividedFileInput" multiple accept="image/*">
+                        <label for="dividedFileInput" class="file-input-label primary">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17,8 12,3 7,8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <span id="dividedInputLabel">Importar Imágenes Impares</span>
+                        </label>
+                    </div>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="clientLogoDivided" accept="image/*">
+                        <label for="clientLogoDivided" class="file-input-label secondary">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21,15 16,10 5,21"/>
+                            </svg>
+                            Logo Cliente
+                        </label>
+                    </div>
+                </div>
+
+                <div class="status-section">
+                    <div class="status-item">
+                        <span class="status-label">Imágenes Impares:</span>
+                        <span id="oddCount" class="status-count">0</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Imágenes Pares:</span>
+                        <span id="evenCount" class="status-count">0</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Total Intercaladas:</span>
+                        <span id="interlacedCount" class="status-count">0</span>
+                    </div>
                 </div>
             </div>
 

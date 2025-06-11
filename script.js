@@ -1,38 +1,80 @@
 // — Variables y configuración inicial —
 const fileInput = document.getElementById('fileInput');
+const dividedFileInput = document.getElementById('dividedFileInput');
 fileInput.addEventListener('change', handleFileSelect);
+dividedFileInput.addEventListener('change', handleDividedFileSelect);
 
 let imageCount = 0;
-const imagesPerPage = 5;                // ahora 5 imágenes por página
-const maxFileSize = 5 * 1024 * 1024;    // 5MB
-const incadLogo = 'Incad.jpg';          // logo INCAD
-let clientLogoSrc = '';                 // logo Cliente
+const imagesPerPage = 5;
+const maxFileSize = 5 * 1024 * 1024;
+const incadLogo = 'Incad.jpg';
+let clientLogoSrc = '';
 
-// Precarga logo INCAD (para evitar CORS)
+// Variables para modo dividido
+let isDividedMode = false;
+let currentImageType = 'odd'; // 'odd' o 'even'
+let oddImages = []; // Array para imágenes impares
+let evenImages = []; // Array para imágenes pares
+let interlacedImages = []; // Array final intercalado
+
+// Precarga logo INCAD
 const preloadIncadLogo = new Image();
 preloadIncadLogo.crossOrigin = 'anonymous';
 preloadIncadLogo.src = incadLogo;
 
-// — Mostrar botón “Limpiar Todo” y su acción —
+// — Inicialización y eventos —
 window.addEventListener('DOMContentLoaded', () => {
+  setupModeControls();
+  setupClearButton();
+  setupTitleUpdates();
+  setupLogoUpload();
+});
+
+function setupModeControls() {
+  const normalModeBtn = document.getElementById('normalModeBtn');
+  const dividedModeBtn = document.getElementById('dividedModeBtn');
+  const oddTypeBtn = document.getElementById('oddTypeBtn');
+  const evenTypeBtn = document.getElementById('evenTypeBtn');
+
+  normalModeBtn.addEventListener('click', () => switchMode('normal'));
+  dividedModeBtn.addEventListener('click', () => switchMode('divided'));
+  oddTypeBtn.addEventListener('click', () => switchImageType('odd'));
+  evenTypeBtn.addEventListener('click', () => switchImageType('even'));
+}
+
+function setupClearButton() {
   const clearBtn = document.getElementById('clearAllBtn');
   clearBtn.addEventListener('click', () => {
     document.getElementById('pageContainer').innerHTML = '';
     imageCount = 0;
-    document.getElementById('imageCount').textContent = 'Imágenes cargadas: 0';
+    oddImages = [];
+    evenImages = [];
+    interlacedImages = [];
+    updateCounters();
     clearBtn.style.display = 'none';
   });
-});
+}
 
-// — Título dinámico en cada página —
-document.getElementById('headerTitle').addEventListener('input', e => {
-  document.querySelectorAll('.document-title')
-          .forEach(t => t.textContent = e.target.value || 'Documento sin título');
-});
+function setupTitleUpdates() {
+  document.getElementById('headerTitle').addEventListener('input', e => {
+    document.querySelectorAll('.document-title')
+            .forEach(t => t.textContent = e.target.value || 'Documento sin título');
+  });
+}
 
-// — Carga de logo del cliente —
-document.getElementById('clientLogo').addEventListener('change', e => {
-  const file = e.target.files[0];
+function setupLogoUpload() {
+  // Logo para modo normal
+  document.getElementById('clientLogo').addEventListener('change', e => {
+    handleLogoUpload(e.target.files[0]);
+  });
+  
+  // Logo para modo dividido
+  document.getElementById('clientLogoDivided').addEventListener('change', e => {
+    handleLogoUpload(e.target.files[0]);
+  });
+}
+
+function handleLogoUpload(file) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = ev => {
@@ -42,13 +84,69 @@ document.getElementById('clientLogo').addEventListener('change', e => {
               img.src = clientLogoSrc;
               img.style.display = 'block';
             });
-    reorganizePages();
+    if (isDividedMode) {
+      regenerateInterlacedView();
+    } else {
+      reorganizePages();
+    }
   };
   reader.readAsDataURL(file);
-});
+}
 
-// — Manejo de archivos seleccionados —
+// — Control de modos —
+function switchMode(mode) {
+  const normalBtn = document.getElementById('normalModeBtn');
+  const dividedBtn = document.getElementById('dividedModeBtn');
+  const normalControls = document.getElementById('normalControls');
+  const dividedControls = document.getElementById('dividedControls');
+
+  if (mode === 'normal') {
+    isDividedMode = false;
+    normalBtn.classList.add('active');
+    dividedBtn.classList.remove('active');
+    normalControls.style.display = 'block';
+    dividedControls.style.display = 'none';
+    
+    // Limpiar datos del modo dividido si hay
+    if (oddImages.length || evenImages.length) {
+      clearAll();
+    }
+  } else {
+    isDividedMode = true;
+    dividedBtn.classList.add('active');
+    normalBtn.classList.remove('active');
+    dividedControls.style.display = 'block';
+    normalControls.style.display = 'none';
+    
+    // Limpiar datos del modo normal si hay
+    if (imageCount > 0) {
+      clearAll();
+    }
+  }
+}
+
+function switchImageType(type) {
+  const oddBtn = document.getElementById('oddTypeBtn');
+  const evenBtn = document.getElementById('evenTypeBtn');
+  const label = document.getElementById('dividedInputLabel');
+
+  currentImageType = type;
+
+  if (type === 'odd') {
+    oddBtn.classList.add('active');
+    evenBtn.classList.remove('active');
+    label.textContent = 'Importar Imágenes Impares';
+  } else {
+    evenBtn.classList.add('active');
+    oddBtn.classList.remove('active');
+    label.textContent = 'Importar Imágenes Pares';
+  }
+}
+
+// — Manejo de archivos modo normal —
 function handleFileSelect(event) {
+  if (isDividedMode) return;
+  
   const files = event.target.files;
   const errorDiv = document.getElementById('errorMessage');
   errorDiv.textContent = '';
@@ -78,11 +176,166 @@ function handleFileSelect(event) {
     errorDiv.innerHTML = errors.join('<br>');
   }
   if (files.length) {
-    event.target.value = '';  // permite recargar mismos archivos
+    event.target.value = '';
   }
 }
 
-// — Activar edición inline del nombre —
+// — Manejo de archivos modo dividido —
+function handleDividedFileSelect(event) {
+  if (!isDividedMode) return;
+  
+  const files = event.target.files;
+  const errorDiv = document.getElementById('errorMessage');
+  errorDiv.textContent = '';
+
+  let errors = [];
+  let processedFiles = 0;
+  const totalFiles = files.length;
+
+  for (let file of files) {
+    if (!file.type.startsWith('image/')) {
+      errors.push(`${file.name} no es una imagen válida`);
+      processedFiles++;
+      continue;
+    }
+    if (file.size > maxFileSize) {
+      errors.push(`${file.name} excede 5MB`);
+      processedFiles++;
+      continue;
+    }
+
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const originalName = file.name.replace(/\.[^/.]+$/, '');
+      addImageToDividedMode(ev.target.result, originalName);
+      
+      processedFiles++;
+      if (processedFiles === totalFiles) {
+        // Todas las imágenes han sido procesadas
+        generateInterlacedView();
+      }
+    };
+    reader.onerror = () => {
+      errors.push(`Error al cargar ${file.name}`);
+      processedFiles++;
+      if (processedFiles === totalFiles) {
+        generateInterlacedView();
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  if (errors.length) {
+    errorDiv.innerHTML = errors.join('<br>');
+  }
+  if (files.length) {
+    event.target.value = '';
+  }
+}
+
+// — Agregar imagen en modo dividido —
+function addImageToDividedMode(src, originalName) {
+  const imageObj = {
+    src: src,
+    originalName: originalName,
+    finalName: ''
+  };
+
+  if (currentImageType === 'odd') {
+    oddImages.push(imageObj);
+    // Renombrar con números impares
+    renameOddImages();
+  } else {
+    evenImages.push(imageObj);
+    // Renombrar con números pares
+    renameEvenImages();
+  }
+
+  updateCounters();
+}
+
+// — Renombrado de imágenes —
+function renameOddImages() {
+  oddImages.forEach((img, index) => {
+    const oddNumber = (index * 2) + 1; // 1, 3, 5, 7, 9...
+    img.finalName = img.originalName.replace(/\d+$/, oddNumber.toString());
+  });
+}
+
+function renameEvenImages() {
+  evenImages.forEach((img, index) => {
+    const evenNumber = (index + 1) * 2; // 2, 4, 6, 8, 10...
+    img.finalName = img.originalName.replace(/\d+$/, evenNumber.toString());
+  });
+}
+
+// — Generar vista intercalada —
+function generateInterlacedView() {
+  // Crear array intercalado
+  interlacedImages = [];
+  const maxLength = Math.max(oddImages.length, evenImages.length);
+  
+  for (let i = 0; i < maxLength; i++) {
+    // Agregar imagen impar si existe
+    if (i < oddImages.length) {
+      interlacedImages.push({...oddImages[i], type: 'odd'});
+    }
+    // Agregar imagen par si existe
+    if (i < evenImages.length) {
+      interlacedImages.push({...evenImages[i], type: 'even'});
+    }
+  }
+
+  // Limpiar contenedor y regenerar páginas
+  document.getElementById('pageContainer').innerHTML = '';
+  imageCount = 0;
+
+  // Agregar todas las imágenes intercaladas
+  interlacedImages.forEach(img => {
+    addImageToPage(img.src, img.finalName);
+  });
+
+  updateCounters();
+}
+
+function regenerateInterlacedView() {
+  if (!isDividedMode || interlacedImages.length === 0) return;
+  generateInterlacedView();
+}
+
+// — Actualizar contadores —
+function updateCounters() {
+  if (isDividedMode) {
+    document.getElementById('oddCount').textContent = oddImages.length;
+    document.getElementById('evenCount').textContent = evenImages.length;
+    document.getElementById('interlacedCount').textContent = interlacedImages.length;
+    
+    const totalImages = interlacedImages.length;
+    document.getElementById('imageCount').textContent = `Imágenes cargadas: ${totalImages}`;
+    
+    if (totalImages > 0) {
+      document.getElementById('clearAllBtn').style.display = 'flex';
+    }
+  } else {
+    document.getElementById('imageCount').textContent = `Imágenes cargadas: ${imageCount}`;
+    if (imageCount > 0) {
+      document.getElementById('clearAllBtn').style.display = 'flex';
+    }
+  }
+}
+
+// — Limpiar todo —
+function clearAll() {
+  document.getElementById('pageContainer').innerHTML = '';
+  imageCount = 0;
+  oddImages = [];
+  evenImages = [];
+  interlacedImages = [];
+  updateCounters();
+  document.getElementById('clearAllBtn').style.display = 'none';
+}
+
+// — Edición de nombres —
 function makeEditable(span) {
   span.contentEditable = true;
   span.classList.add('editable');
@@ -96,6 +349,11 @@ function makeEditable(span) {
   span.addEventListener('blur', () => {
     span.contentEditable = false;
     span.classList.remove('editable');
+    
+    // Si estamos en modo dividido, actualizar el nombre en el array correspondiente
+    if (isDividedMode) {
+      updateImageNameInArrays(span);
+    }
   }, { once: true });
 
   span.addEventListener('keypress', e => {
@@ -106,35 +364,86 @@ function makeEditable(span) {
   }, { once: true });
 }
 
+function updateImageNameInArrays(span) {
+  const newName = span.textContent;
+  const imageItem = span.closest('.imageItem');
+  const imgSrc = imageItem.querySelector('img').src;
+  
+  // Buscar y actualizar en los arrays
+  let found = false;
+  
+  // Buscar en imágenes impares
+  for (let img of oddImages) {
+    if (img.src === imgSrc) {
+      img.finalName = newName;
+      found = true;
+      break;
+    }
+  }
+  
+  // Si no se encontró en impares, buscar en pares
+  if (!found) {
+    for (let img of evenImages) {
+      if (img.src === imgSrc) {
+        img.finalName = newName;
+        break;
+      }
+    }
+  }
+  
+  // Actualizar array intercalado
+  for (let img of interlacedImages) {
+    if (img.src === imgSrc) {
+      img.finalName = newName;
+      break;
+    }
+  }
+}
+
+// — Eliminar imagen —
 function deleteImage(btn) {
   const snapshots = [];
   document.querySelectorAll('.imageItem').forEach(item => {
     if (item.querySelector('.deleteButton') !== btn) {
       snapshots.push({
-        src:  item.querySelector('img').src,
+        src: item.querySelector('img').src,
         name: item.querySelector('.image-name').textContent
       });
     }
   });
 
-const container = document.getElementById('pageContainer');
+  const container = document.getElementById('pageContainer');
   container.innerHTML = '';
-  imageCount = 0;
-
-if (snapshots.length === 0) {
-    document.getElementById('clearAllBtn').style.display = 'none';
+  
+  if (isDividedMode) {
+    // En modo dividido, reconstruir arrays y regenerar
+    const deletedImgSrc = btn.closest('.imageItem').querySelector('img').src;
+    
+    // Eliminar de arrays
+    oddImages = oddImages.filter(img => img.src !== deletedImgSrc);
+    evenImages = evenImages.filter(img => img.src !== deletedImgSrc);
+    
+    // Renombrar y regenerar
+    renameOddImages();
+    renameEvenImages();
+    generateInterlacedView();
+  } else {
+    // Modo normal
+    imageCount = 0;
+    snapshots.forEach(o => addImageToPage(o.src, o.name));
   }
 
-snapshots.forEach(o => addImageToPage(o.src, o.name));
+  if (snapshots.length === 0) {
+    document.getElementById('clearAllBtn').style.display = 'none';
+  }
 }
 
-// — Añade cada imagen y su nombre a la página correspondiente —
+// — Añadir imagen a página (modo normal y vista final) —
 function addImageToPage(src, name) {
   const container = document.getElementById('pageContainer');
   let pages = container.getElementsByClassName('page');
   let lastPage = pages[pages.length - 1];
 
-  // Si no existe página o ya llegó al tope, creo una nueva
   if (!lastPage || lastPage.getElementsByClassName('imageItem').length >= imagesPerPage) {
     lastPage = document.createElement('div');
     lastPage.classList.add('page');
@@ -170,7 +479,7 @@ function addImageToPage(src, name) {
     container.appendChild(lastPage);
   }
 
-  // Bloque de imagen + nombre + botón eliminar
+  // Item de imagen
   const item = document.createElement('div');
   item.classList.add('imageItem');
   item.innerHTML = `
@@ -180,20 +489,16 @@ function addImageToPage(src, name) {
   `;
   lastPage.appendChild(item);
 
-  // Actualizar contador y mostrar botón Limpiar
   imageCount++;
-  document.getElementById('imageCount').textContent = `Imágenes cargadas: ${imageCount}`;
-  if (imageCount > 0) {
-    document.getElementById('clearAllBtn').style.display = 'flex';
-  }
+  updateCounters();
 }
 
-// — Reordena todas las páginas (para cuando cambias el logo cliente) —
+// — Reorganizar páginas —
 function reorganizePages() {
   const snaps = [];
   document.querySelectorAll('.imageItem').forEach(item => {
     snaps.push({
-      src:  item.querySelector('img').src,
+      src: item.querySelector('img').src,
       name: item.querySelector('.image-name').textContent
     });
   });
@@ -202,7 +507,7 @@ function reorganizePages() {
   snaps.forEach(o => addImageToPage(o.src, o.name));
 }
 
-// — Exportar todo a PDF —
+// — Exportar a PDF —
 async function exportToPdf() {
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({ format: 'a4', unit: 'px' });
@@ -213,15 +518,11 @@ async function exportToPdf() {
       useCORS: true,
     });
     const imgData = canvas.toDataURL('image/png');
-    pdf.addImage(
-      imgData, 'PNG',
-      0, 0,
+    pdf.addImage(imgData, 'PNG', 0, 0,
       pdf.internal.pageSize.getWidth(),
       pdf.internal.pageSize.getHeight()
     );
     if (i < pages.length - 1) pdf.addPage();
   }
-  pdf.save(
-    `${document.getElementById('headerTitle').value || 'Reporte'}.pdf`
-  );
+  pdf.save(`${document.getElementById('headerTitle').value || 'Reporte'}.pdf`);
 }
