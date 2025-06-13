@@ -17,10 +17,10 @@ let oddImages = []; // Array para imágenes impares
 let evenImages = []; // Array para imágenes pares
 let interlacedImages = []; // Array final intercalado
 
-// Variables para el contador
-let currentNormalImageCount = 0;  // Contador para el modo normal
-let currentOddImageCount = 0;     // Contador para las imágenes impares
-let currentEvenImageCount = 0;    // Contador para las imágenes pares
+// Variables para el contador - estas controlan desde qué número empezar
+let nextOddNumber = 1;     // Próximo número impar a usar
+let nextEvenNumber = 2;    // Próximo número par a usar
+let counterReset = false;  // Flag para saber si se reinició el contador
 
 // Precarga logo INCAD
 const preloadIncadLogo = new Image();
@@ -56,6 +56,9 @@ function setupClearButton() {
     oddImages = [];
     evenImages = [];
     interlacedImages = [];
+    nextOddNumber = 1;
+    nextEvenNumber = 2;
+    counterReset = false;
     updateCounters();
     clearBtn.style.display = 'none';
   });
@@ -87,16 +90,23 @@ function setupResetCounterButton() {
 
 function resetImageCounter() {
   if (isDividedMode) {
-    // Reiniciar solo el contador del modo dividido (impares y pares)
-    currentOddImageCount = 0;
-    currentEvenImageCount = 0;
-  } else {
-    // Reiniciar el contador para el modo normal
-    currentNormalImageCount = 0;
+    // Reiniciar los contadores para que las próximas imágenes empiecen desde 1 y 2
+    nextOddNumber = 1;
+    nextEvenNumber = 2;
+    counterReset = true; // Marcar que se reinició el contador
+    
+    // Mostrar feedback visual al usuario
+    const btn = document.getElementById('resetCounterBtn');
+    const originalText = btn.textContent;
+    btn.textContent = 'Contador Reiniciado ✓';
+    btn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+    
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.style.background = 'linear-gradient(135deg, #d82222 0%, #d70909 100%)';
+    }, 2000);
   }
-  updateCounters();
 }
-
 
 // Cargar Logo del Cliente
 function handleLogoUpload(file) {
@@ -184,7 +194,6 @@ function handleFileSelect(event) {
       // Eliminar la extensión del archivo (como .svg, .png, .jpg)
       const name = file.name.replace(/\.[^/.]+$/, '');  // Elimina la extensión
       addImageToPage(ev.target.result, name);
-      currentNormalImageCount++;  // Incrementar el contador
     };
     reader.onerror = () => {
       errors.push(`Error al cargar ${file.name}`);
@@ -261,32 +270,36 @@ function addImageToDividedMode(src, originalName) {
     finalName: ''
   };
 
+  const baseNameWithoutNumber = originalName.replace(/\d+$/, '');
+
   if (currentImageType === 'odd') {
     oddImages.push(imageObj);
-    // Renombrar con números impares
-    renameOddImages();
+    
+    if (counterReset) {
+      // Si se reinició el contador, usar nextOddNumber directamente
+      imageObj.finalName = baseNameWithoutNumber + nextOddNumber;
+      nextOddNumber += 2;
+    } else {
+      // Si no se reinició, calcular basándose en las imágenes existentes
+      const currentOddNumber = (oddImages.length - 1) * 2 + 1; // -1 porque ya se agregó al array
+      imageObj.finalName = baseNameWithoutNumber + (currentOddNumber);
+    }
   } else {
     evenImages.push(imageObj);
-    // Renombrar con números pares
-    renameEvenImages();
+    
+    if (counterReset) {
+      // Si se reinició el contador, usar nextEvenNumber directamente
+      imageObj.finalName = baseNameWithoutNumber + nextEvenNumber;
+      nextEvenNumber += 2;
+    } else {
+      // Si no se reinició, calcular basándose en las imágenes existentes
+      // CORREGIDO: Usar (evenImages.length - 1) porque ya se agregó la imagen al array
+      const currentEvenNumber = (evenImages.length - 1) * 2 + 2; // Esto da: 2, 4, 6, 8...
+      imageObj.finalName = baseNameWithoutNumber + currentEvenNumber;
+    }
   }
 
   updateCounters();
-}
-
-// — Renombrado de imágenes —
-function renameOddImages() {
-  oddImages.forEach((img, index) => {
-    const oddNumber = (index * 2) + 1; // 1, 3, 5, 7, 9...
-    img.finalName = img.originalName.replace(/\d+$/, oddNumber.toString());
-  });
-}
-
-function renameEvenImages() {
-  evenImages.forEach((img, index) => {
-    const evenNumber = (index + 1) * 2; // 2, 4, 6, 8, 10...
-    img.finalName = img.originalName.replace(/\d+$/, evenNumber.toString());
-  });
 }
 
 // — Generar vista intercalada —
@@ -316,6 +329,9 @@ function generateInterlacedView() {
   });
 
   updateCounters();
+  
+  // Resetear el flag después de generar la vista
+  counterReset = false;
 }
 
 function regenerateInterlacedView() {
@@ -441,9 +457,7 @@ function deleteImage(btn) {
       }
     }
 
-    // 3) Renombrar y regenerar la vista
-    renameOddImages();
-    renameEvenImages();
+    // 3) Regenerar la vista sin renombrar (mantener los nombres actuales)
     generateInterlacedView();
 
   } else {
