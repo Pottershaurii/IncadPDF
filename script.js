@@ -6,7 +6,7 @@ dividedFileInput.addEventListener('change', handleDividedFileSelect);
 
 let imageCount = 0;
 const imagesPerPage = 5;
-const maxFileSize = 5 * 1024 * 1024;
+const maxFileSize = 1 * 1024 * 1024;
 const incadLogo = 'Incad.jpg';
 let clientLogoSrc = '';
 
@@ -16,6 +16,11 @@ let currentImageType = 'odd'; // 'odd' o 'even'
 let oddImages = []; // Array para imágenes impares
 let evenImages = []; // Array para imágenes pares
 let interlacedImages = []; // Array final intercalado
+
+// Variables para el contador
+let currentNormalImageCount = 0;  // Contador para el modo normal
+let currentOddImageCount = 0;     // Contador para las imágenes impares
+let currentEvenImageCount = 0;    // Contador para las imágenes pares
 
 // Precarga logo INCAD
 const preloadIncadLogo = new Image();
@@ -28,6 +33,7 @@ window.addEventListener('DOMContentLoaded', () => {
   setupClearButton();
   setupTitleUpdates();
   setupLogoUpload();
+  setupResetCounterButton();  // Agregado para el botón de reiniciar contador
 });
 
 function setupModeControls() {
@@ -74,6 +80,25 @@ function setupLogoUpload() {
   });
 }
 
+function setupResetCounterButton() {
+  // Configurar el botón de reiniciar contador
+  document.getElementById('resetCounterBtn').addEventListener('click', resetImageCounter);
+}
+
+function resetImageCounter() {
+  if (isDividedMode) {
+    // Reiniciar solo el contador del modo dividido (impares y pares)
+    currentOddImageCount = 0;
+    currentEvenImageCount = 0;
+  } else {
+    // Reiniciar el contador para el modo normal
+    currentNormalImageCount = 0;
+  }
+  updateCounters();
+}
+
+
+// Cargar Logo del Cliente
 function handleLogoUpload(file) {
   if (!file) return;
   const reader = new FileReader();
@@ -106,23 +131,16 @@ function switchMode(mode) {
     dividedBtn.classList.remove('active');
     normalControls.style.display = 'block';
     dividedControls.style.display = 'none';
-    
-    // Limpiar datos del modo dividido si hay
-    if (oddImages.length || evenImages.length) {
-      clearAll();
-    }
   } else {
     isDividedMode = true;
     dividedBtn.classList.add('active');
     normalBtn.classList.remove('active');
     dividedControls.style.display = 'block';
     normalControls.style.display = 'none';
-    
-    // Limpiar datos del modo normal si hay
-    if (imageCount > 0) {
-      clearAll();
-    }
   }
+
+  // Mantener las imágenes ya cargadas (no eliminarlas al cambiar de modo)
+  updateCounters();
 }
 
 function switchImageType(type) {
@@ -145,8 +163,8 @@ function switchImageType(type) {
 
 // — Manejo de archivos modo normal —
 function handleFileSelect(event) {
-  if (isDividedMode) return;
-  
+  if (isDividedMode) return;  // Si estamos en el modo dividido, no reiniciar
+
   const files = event.target.files;
   const errorDiv = document.getElementById('errorMessage');
   errorDiv.textContent = '';
@@ -158,13 +176,15 @@ function handleFileSelect(event) {
       continue;
     }
     if (file.size > maxFileSize) {
-      errors.push(`${file.name} excede 5MB`);
+      errors.push(`${file.name} excede el tamaño máximo de 1MB`);
       continue;
     }
     const reader = new FileReader();
     reader.onload = ev => {
-      const name = file.name.replace(/\.[^/.]+$/, '');
+      // Eliminar la extensión del archivo (como .svg, .png, .jpg)
+      const name = file.name.replace(/\.[^/.]+$/, '');  // Elimina la extensión
       addImageToPage(ev.target.result, name);
+      currentNormalImageCount++;  // Incrementar el contador
     };
     reader.onerror = () => {
       errors.push(`Error al cargar ${file.name}`);
@@ -176,7 +196,7 @@ function handleFileSelect(event) {
     errorDiv.innerHTML = errors.join('<br>');
   }
   if (files.length) {
-    event.target.value = '';
+    event.target.value = ''; // Limpiar el input
   }
 }
 
@@ -326,8 +346,12 @@ function updateCounters() {
 
 // — Limpiar todo —
 function clearAll() {
-  document.getElementById('pageContainer').innerHTML = '';
-  imageCount = 0;
+  if (!isDividedMode) {
+    // Solo limpiar si estamos en modo normal
+    document.getElementById('pageContainer').innerHTML = '';
+    imageCount = 0;
+  }
+
   oddImages = [];
   evenImages = [];
   interlacedImages = [];
@@ -402,40 +426,46 @@ function updateImageNameInArrays(span) {
 
 // — Eliminar imagen —
 function deleteImage(btn) {
-  const snapshots = [];
-  document.querySelectorAll('.imageItem').forEach(item => {
-    if (item.querySelector('.deleteButton') !== btn) {
-      snapshots.push({
-        src: item.querySelector('img').src,
-        name: item.querySelector('.image-name').textContent
-      });
-    }
-  });
-
-  const container = document.getElementById('pageContainer');
-  container.innerHTML = '';
-  
   if (isDividedMode) {
-    // En modo dividido, reconstruir arrays y regenerar
-    const deletedImgSrc = btn.closest('.imageItem').querySelector('img').src;
-    
-    // Eliminar de arrays
-    oddImages = oddImages.filter(img => img.src !== deletedImgSrc);
-    evenImages = evenImages.filter(img => img.src !== deletedImgSrc);
-    
-    // Renombrar y regenerar
+    const deletedSrc = btn.closest('.imageItem').querySelector('img').src;
+
+    // 1) Buscar índice en oddImages
+    const oddIdx = oddImages.findIndex(img => img.src === deletedSrc);
+    if (oddIdx > -1) {
+      oddImages.splice(oddIdx, 1);
+    } else {
+      // 2) Si no estaba en impares, buscar en evenImages
+      const evenIdx = evenImages.findIndex(img => img.src === deletedSrc);
+      if (evenIdx > -1) {
+        evenImages.splice(evenIdx, 1);
+      }
+    }
+
+    // 3) Renombrar y regenerar la vista
     renameOddImages();
     renameEvenImages();
     generateInterlacedView();
+
   } else {
-    // Modo normal
+    // tu código actual para modo normal
+    const snapshots = [];
+    document.querySelectorAll('.imageItem').forEach(item => {
+      if (item.querySelector('.deleteButton') !== btn) {
+        snapshots.push({
+          src: item.querySelector('img').src,
+          name: item.querySelector('.image-name').textContent
+        });
+      }
+    });
+    document.getElementById('pageContainer').innerHTML = '';
     imageCount = 0;
     snapshots.forEach(o => addImageToPage(o.src, o.name));
+    if (snapshots.length === 0) {
+      document.getElementById('clearAllBtn').style.display = 'none';
+    }
   }
 
-  if (snapshots.length === 0) {
-    document.getElementById('clearAllBtn').style.display = 'none';
-  }
+  updateCounters();
 }
 
 // — Añadir imagen a página (modo normal y vista final) —
@@ -511,18 +541,33 @@ function reorganizePages() {
 async function exportToPdf() {
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({ format: 'a4', unit: 'px' });
+
   const pages = document.querySelectorAll('.page');
+
   for (let i = 0; i < pages.length; i++) {
-    const canvas = await html2canvas(pages[i], {
-      scale: window.devicePixelRatio * 2,
-      useCORS: true,
-    });
-    const imgData = canvas.toDataURL('image/png');
-    pdf.addImage(imgData, 'PNG', 0, 0,
-      pdf.internal.pageSize.getWidth(),
-      pdf.internal.pageSize.getHeight()
-    );
+    const page = pages[i];
+
+    // Verificar si la página contiene imágenes SVG
+    const svgElements = page.querySelectorAll('svg');
+    
+    if (svgElements.length > 0) {
+      // Si hay SVG, usaremos svg2pdf.js para agregarlo al PDF
+      svgElements.forEach(svg => {
+        const svg2pdf = new Svg2Pdf(svg, pdf);
+        svg2pdf.setSize(210, 297); // Ajustar al tamaño A4
+      });
+    } else {
+      // Si no hay SVG, proceder como lo hacías antes con html2canvas
+      const canvas = await html2canvas(page, {  
+        scale: window.devicePixelRatio * 2,
+        useCORS: true,
+      });
+      const imgData = canvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
+    }
+
     if (i < pages.length - 1) pdf.addPage();
   }
+
   pdf.save(`${document.getElementById('headerTitle').value || 'Reporte'}.pdf`);
 }
