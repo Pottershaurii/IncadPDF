@@ -555,33 +555,104 @@ function reorganizePages() {
 async function exportToPdf() {
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({ format: 'a4', unit: 'px' });
-
   const pages = document.querySelectorAll('.page');
+  // Usar escala 2.5 y calidad JPEG 0.98 para mejor calidad visual y peso contenido
+  const exportScale = 2.5;
+  const jpegQuality = 0.98;
 
   for (let i = 0; i < pages.length; i++) {
     const page = pages[i];
-
-    // Verificar si la página contiene imágenes SVG
-    const svgElements = page.querySelectorAll('svg');
-    
-    if (svgElements.length > 0) {
-      // Si hay SVG, usaremos svg2pdf.js para agregarlo al PDF
-      svgElements.forEach(svg => {
-        const svg2pdf = new Svg2Pdf(svg, pdf);
-        svg2pdf.setSize(210, 297); // Ajustar al tamaño A4
-      });
-    } else {
-      // Si no hay SVG, proceder como lo hacías antes con html2canvas
-      const canvas = await html2canvas(page, {  
-        scale: window.devicePixelRatio * 2,
-        useCORS: true,
-      });
-      const imgData = canvas.toDataURL('image/png');
-      pdf.addImage(imgData, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
-    }
-
+    // Rasterizar toda la página, incluyendo SVGs
+    const canvas = await html2canvas(page, {
+      scale: exportScale,
+      useCORS: true,
+      backgroundColor: '#fff',
+    });
+    const imgData = canvas.toDataURL('image/jpeg', jpegQuality);
+    pdf.addImage(imgData, 'JPEG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
     if (i < pages.length - 1) pdf.addPage();
   }
-
   pdf.save(`${document.getElementById('headerTitle').value || 'Reporte'}.pdf`);
+}
+
+// — Imprimir Vista Previa con Modal y Configuración —
+function printPreview() {
+  // Copiar el contenido de la vista previa al modal
+  const previewArea = document.getElementById('printPreviewArea');
+  previewArea.innerHTML = document.getElementById('pageContainer').innerHTML;
+  document.getElementById('printModal').style.display = 'flex';
+  // Reset opciones
+  document.getElementById('printOrientation').value = 'portrait';
+  document.getElementById('printMargin').value = 'normal';
+  applyPrintStyles();
+}
+
+function closePrintModal() {
+  document.getElementById('printModal').style.display = 'none';
+  removePrintStyles();
+}
+
+function applyPrintStyles() {
+  // Aplica los estilos de orientación y márgenes a la vista previa
+  const orientation = document.getElementById('printOrientation').value;
+  const margin = document.getElementById('printMargin').value;
+  const previewArea = document.getElementById('printPreviewArea');
+  previewArea.style.width = orientation === 'landscape' ? '842px' : '595px';
+  previewArea.style.height = orientation === 'landscape' ? '595px' : '842px';
+  if (margin === 'normal') {
+    previewArea.style.padding = '32px';
+  } else if (margin === 'narrow') {
+    previewArea.style.padding = '8px';
+  } else {
+    previewArea.style.padding = '0';
+  }
+}
+
+document.getElementById('printOrientation').addEventListener('change', applyPrintStyles);
+document.getElementById('printMargin').addEventListener('change', applyPrintStyles);
+
+function confirmPrint() {
+  // Crea un iframe oculto para imprimir con los estilos seleccionados
+  const orientation = document.getElementById('printOrientation').value;
+  const margin = document.getElementById('printMargin').value;
+  const printContents = document.getElementById('printPreviewArea').innerHTML;
+  const styleHref = document.querySelector('link[href*="style.css"]').href;
+  let printStyles = `<link rel="stylesheet" href="${styleHref}">`;
+  printStyles += `<style>@page { size: ${orientation} A4; }`;
+  if (margin === 'normal') {
+    printStyles += '@page { margin: 2.5cm 2cm 2.5cm 2cm; }';
+  } else if (margin === 'narrow') {
+    printStyles += '@page { margin: 0.7cm 0.7cm 0.7cm 0.7cm; }';
+  } else {
+    printStyles += '@page { margin: 0; }';
+  }
+  printStyles += '</style>';
+
+  const printFrame = document.createElement('iframe');
+  printFrame.style.position = 'fixed';
+  printFrame.style.right = '0';
+  printFrame.style.bottom = '0';
+  printFrame.style.width = '0';
+  printFrame.style.height = '0';
+  printFrame.style.border = '0';
+  document.body.appendChild(printFrame);
+
+  printFrame.contentDocument.open();
+  printFrame.contentDocument.write('<html><head><title>Imprimir</title>' + printStyles + '</head><body>');
+  printFrame.contentDocument.write('<div class="main-container">' + printContents + '</div>');
+  printFrame.contentDocument.write('</body></html>');
+  printFrame.contentDocument.close();
+
+  printFrame.onload = function() {
+    printFrame.contentWindow.focus();
+    printFrame.contentWindow.print();
+    setTimeout(() => {
+      document.body.removeChild(printFrame);
+      closePrintModal();
+    }, 500);
+  };
+}
+
+function removePrintStyles() {
+  // Limpia cualquier estilo temporal si es necesario (placeholder)
 }

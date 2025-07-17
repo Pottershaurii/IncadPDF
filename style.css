@@ -1,3 +1,45 @@
+/* Modal de impresión */
+.print-modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.print-modal-content {
+  background: #fff;
+  border-radius: 10px;
+  padding: 32px 24px 24px 24px;
+  min-width: 600px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.print-options {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+.print-options label {
+  font-weight: 500;
+}
+.print-preview-area {
+  background: #f8f8f8;
+  border: 1px solid #ddd;
+  margin: 0 auto 16px auto;
+  padding: 16px;
+  min-height: 400px;
+  max-height: 50vh;
+  overflow: auto;
+}
+.print-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
 /* Reset y fuentes */
 * {
     margin: 0;
