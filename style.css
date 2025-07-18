@@ -54,6 +54,8 @@
 .interface-section {
   width: 100%;
 }
+
+/* Modal de impresión */
 .print-modal {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
