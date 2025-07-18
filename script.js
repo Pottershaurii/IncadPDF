@@ -22,6 +22,12 @@ let nextOddNumber = 1;     // Próximo número impar a usar
 let nextEvenNumber = 2;    // Próximo número par a usar
 let counterReset = false;  // Flag para saber si se reinició el contador
 
+// Variables para Dashboard
+let dashboardOddImages = [];
+let dashboardEvenImages = [];
+let dashboardClientLogo = '';
+let currentInterface = 'organizador';
+
 // Precarga logo INCAD
 const preloadIncadLogo = new Image();
 preloadIncadLogo.crossOrigin = 'anonymous';
@@ -34,7 +40,42 @@ window.addEventListener('DOMContentLoaded', () => {
   setupTitleUpdates();
   setupLogoUpload();
   setupResetCounterButton();  // Agregado para el botón de reiniciar contador
+  setupDashboardControls();  // Configurar controles del dashboard
 });
+
+// — Cambio de interfaz —
+function switchInterface(interfaceName) {
+  currentInterface = interfaceName;
+  
+  // Ocultar todas las interfaces
+  document.getElementById('organizadorInterface').style.display = 'none';
+  document.getElementById('dashboardInterface').style.display = 'none';
+  
+  // Mostrar la interfaz seleccionada
+  document.getElementById(interfaceName + 'Interface').style.display = 'block';
+  
+  // Actualizar botones del menú
+  document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(interfaceName + 'Btn').classList.add('active');
+}
+
+// — Configuración Dashboard —
+function setupDashboardControls() {
+  // Configurar inputs de archivo para Dashboard
+  document.getElementById('dashboardOddInput').addEventListener('change', handleDashboardOddInput);
+  document.getElementById('dashboardEvenInput').addEventListener('change', handleDashboardEvenInput);
+  document.getElementById('dashboardClientLogo').addEventListener('change', handleDashboardClientLogo);
+  
+  // Configurar selectores de imágenes
+  document.getElementById('oddImageSelector').addEventListener('change', updateDashboardPreview);
+  document.getElementById('evenImageSelector').addEventListener('change', updateDashboardPreview);
+  
+  // Configurar título
+  document.getElementById('dashboardTitle').addEventListener('input', updateDashboardPreview);
+  
+  // Configurar botón limpiar
+  document.getElementById('clearDashboardBtn').addEventListener('click', clearDashboard);
+}
 
 function setupModeControls() {
   const normalModeBtn = document.getElementById('normalModeBtn');
@@ -555,33 +596,289 @@ function reorganizePages() {
 async function exportToPdf() {
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({ format: 'a4', unit: 'px' });
-
   const pages = document.querySelectorAll('.page');
+  // Usar escala 2.5 y calidad JPEG 0.98 para mejor calidad visual y peso contenido
+  const exportScale = 2.5;
+  const jpegQuality = 0.98;
 
   for (let i = 0; i < pages.length; i++) {
     const page = pages[i];
-
-    // Verificar si la página contiene imágenes SVG
-    const svgElements = page.querySelectorAll('svg');
-    
-    if (svgElements.length > 0) {
-      // Si hay SVG, usaremos svg2pdf.js para agregarlo al PDF
-      svgElements.forEach(svg => {
-        const svg2pdf = new Svg2Pdf(svg, pdf);
-        svg2pdf.setSize(210, 297); // Ajustar al tamaño A4
-      });
-    } else {
-      // Si no hay SVG, proceder como lo hacías antes con html2canvas
-      const canvas = await html2canvas(page, {  
-        scale: window.devicePixelRatio * 2,
-        useCORS: true,
-      });
-      const imgData = canvas.toDataURL('image/png');
-      pdf.addImage(imgData, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
-    }
-
+    // Rasterizar toda la página, incluyendo SVGs
+    const canvas = await html2canvas(page, {
+      scale: exportScale,
+      useCORS: true,
+      backgroundColor: '#fff',
+    });
+    const imgData = canvas.toDataURL('image/jpeg', jpegQuality);
+    pdf.addImage(imgData, 'JPEG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
     if (i < pages.length - 1) pdf.addPage();
   }
-
   pdf.save(`${document.getElementById('headerTitle').value || 'Reporte'}.pdf`);
+}
+
+// — Imprimir Vista Previa con Modal y Configuración —
+function printPreview() {
+  // Copiar el contenido de la vista previa al modal
+  const previewArea = document.getElementById('printPreviewArea');
+  previewArea.innerHTML = document.getElementById('pageContainer').innerHTML;
+  document.getElementById('printModal').style.display = 'flex';
+  // Reset opciones
+  document.getElementById('printOrientation').value = 'portrait';
+  document.getElementById('printMargin').value = 'normal';
+  applyPrintStyles();
+}
+
+function closePrintModal() {
+  document.getElementById('printModal').style.display = 'none';
+  removePrintStyles();
+}
+
+function applyPrintStyles() {
+  // Aplica los estilos de orientación y márgenes a la vista previa
+  const orientation = document.getElementById('printOrientation').value;
+  const margin = document.getElementById('printMargin').value;
+  const previewArea = document.getElementById('printPreviewArea');
+  previewArea.style.width = orientation === 'landscape' ? '842px' : '595px';
+  previewArea.style.height = orientation === 'landscape' ? '595px' : '842px';
+  if (margin === 'normal') {
+    previewArea.style.padding = '32px';
+  } else if (margin === 'narrow') {
+    previewArea.style.padding = '8px';
+  } else {
+    previewArea.style.padding = '0';
+  }
+}
+
+document.getElementById('printOrientation').addEventListener('change', applyPrintStyles);
+document.getElementById('printMargin').addEventListener('change', applyPrintStyles);
+
+function confirmPrint() {
+  // Crea un iframe oculto para imprimir con los estilos seleccionados
+  const orientation = document.getElementById('printOrientation').value;
+  const margin = document.getElementById('printMargin').value;
+  const printContents = document.getElementById('printPreviewArea').innerHTML;
+  const styleHref = document.querySelector('link[href*="style.css"]').href;
+  let printStyles = `<link rel="stylesheet" href="${styleHref}">`;
+  printStyles += `<style>@page { size: ${orientation} A4; }`;
+  if (margin === 'normal') {
+    printStyles += '@page { margin: 2.5cm 2cm 2.5cm 2cm; }';
+  } else if (margin === 'narrow') {
+    printStyles += '@page { margin: 0.7cm 0.7cm 0.7cm 0.7cm; }';
+  } else {
+    printStyles += '@page { margin: 0; }';
+  }
+  printStyles += '</style>';
+
+  const printFrame = document.createElement('iframe');
+  printFrame.style.position = 'fixed';
+  printFrame.style.right = '0';
+  printFrame.style.bottom = '0';
+  printFrame.style.width = '0';
+  printFrame.style.height = '0';
+  printFrame.style.border = '0';
+  document.body.appendChild(printFrame);
+
+  printFrame.contentDocument.open();
+  printFrame.contentDocument.write('<html><head><title>Imprimir</title>' + printStyles + '</head><body>');
+  printFrame.contentDocument.write('<div class="main-container">' + printContents + '</div>');
+  printFrame.contentDocument.write('</body></html>');
+  printFrame.contentDocument.close();
+
+  printFrame.onload = function() {
+    printFrame.contentWindow.focus();
+    printFrame.contentWindow.print();
+    setTimeout(() => {
+      document.body.removeChild(printFrame);
+      closePrintModal();
+    }, 500);
+  };
+}
+
+function removePrintStyles() {
+  // Limpia cualquier estilo temporal si es necesario (placeholder)
+}
+
+// — Funciones Dashboard —
+function handleDashboardOddInput(event) {
+  const files = event.target.files;
+  dashboardOddImages = [];
+  
+  for (let file of files) {
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const name = file.name.replace(/\.[^/.]+$/, '');
+        dashboardOddImages.push({
+          name: name,
+          src: e.target.result
+        });
+        updateOddSelector();
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+}
+
+function handleDashboardEvenInput(event) {
+  const files = event.target.files;
+  dashboardEvenImages = [];
+  
+  for (let file of files) {
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const name = file.name.replace(/\.[^/.]+$/, '');
+        dashboardEvenImages.push({
+          name: name,
+          src: e.target.result
+        });
+        updateEvenSelector();
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+}
+
+function handleDashboardClientLogo(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      dashboardClientLogo = e.target.result;
+      updateDashboardPreview();
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function updateOddSelector() {
+  const selector = document.getElementById('oddImageSelector');
+  selector.innerHTML = '<option value="">Seleccione una imagen...</option>';
+  
+  dashboardOddImages.forEach((img, index) => {
+    const option = document.createElement('option');
+    option.value = index;
+    option.textContent = img.name;
+    selector.appendChild(option);
+  });
+  
+  updateDashboardPreview();
+}
+
+function updateEvenSelector() {
+  const selector = document.getElementById('evenImageSelector');
+  selector.innerHTML = '<option value="">Seleccione una imagen...</option>';
+  
+  dashboardEvenImages.forEach((img, index) => {
+    const option = document.createElement('option');
+    option.value = index;
+    option.textContent = img.name;
+    selector.appendChild(option);
+  });
+  
+  updateDashboardPreview();
+}
+
+function updateDashboardPreview() {
+  const preview = document.getElementById('dashboardPreview');
+  const title = document.getElementById('dashboardTitle').value || 'Documento sin título';
+  const oddIndex = document.getElementById('oddImageSelector').value;
+  const evenIndex = document.getElementById('evenImageSelector').value;
+  
+  if (oddIndex === '' && evenIndex === '') {
+    preview.innerHTML = '<p>Seleccione imágenes para ver la vista previa</p>';
+    return;
+  }
+  
+  // Crear página de vista previa
+  const page = document.createElement('div');
+  page.classList.add('page');
+  
+  // Header
+  const header = document.createElement('div');
+  header.classList.add('page-header');
+  const clientHtml = dashboardClientLogo
+    ? `<img src="${dashboardClientLogo}" class="client-logo" style="display:block;">`
+    : '<div style="width:40px;"></div>';
+  header.innerHTML = `
+    <img src="${incadLogo}" class="incad-logo" crossorigin="anonymous">
+    <h1 class="document-title">${title}</h1>
+    ${clientHtml}
+  `;
+  page.appendChild(header);
+  
+  // Agregar imagen impar si está seleccionada
+  if (oddIndex !== '' && dashboardOddImages[oddIndex]) {
+    const oddImg = dashboardOddImages[oddIndex];
+    const item = document.createElement('div');
+    item.classList.add('imageItem');
+    item.innerHTML = `
+      <img src="${oddImg.src}" alt="${oddImg.name}">
+      <span class="image-name">${oddImg.name}</span>
+    `;
+    page.appendChild(item);
+  }
+  
+  // Agregar imagen par si está seleccionada
+  if (evenIndex !== '' && dashboardEvenImages[evenIndex]) {
+    const evenImg = dashboardEvenImages[evenIndex];
+    const item = document.createElement('div');
+    item.classList.add('imageItem');
+    item.innerHTML = `
+      <img src="${evenImg.src}" alt="${evenImg.name}">
+      <span class="image-name">${evenImg.name}</span>
+    `;
+    page.appendChild(item);
+  }
+  
+  // Footer
+  const footer = document.createElement('div');
+  footer.classList.add('page-footer');
+  footer.innerHTML = `
+    <p>INCAD SERVICE 2025 ®</p>
+    <p>Carlos Rosales B. | Contacto: +51 969 991 467 | crosales@incad-service.com</p>
+  `;
+  page.appendChild(footer);
+  
+  preview.innerHTML = '';
+  preview.appendChild(page);
+}
+
+function clearDashboard() {
+  dashboardOddImages = [];
+  dashboardEvenImages = [];
+  dashboardClientLogo = '';
+  document.getElementById('dashboardTitle').value = '';
+  document.getElementById('oddImageSelector').innerHTML = '<option value="">Seleccione una imagen...</option>';
+  document.getElementById('evenImageSelector').innerHTML = '<option value="">Seleccione una imagen...</option>';
+  document.getElementById('dashboardPreview').innerHTML = '';
+  document.getElementById('dashboardOddInput').value = '';
+  document.getElementById('dashboardEvenInput').value = '';
+  document.getElementById('dashboardClientLogo').value = '';
+}
+
+async function exportDashboardToPdf() {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ format: 'a4', unit: 'px' });
+  const page = document.querySelector('#dashboardPreview .page');
+  
+  if (!page) {
+    alert('No hay contenido para exportar');
+    return;
+  }
+  
+  const exportScale = 2.5;
+  const jpegQuality = 0.98;
+  
+  const canvas = await html2canvas(page, {
+    scale: exportScale,
+    useCORS: true,
+    backgroundColor: '#fff',
+  });
+  
+  const imgData = canvas.toDataURL('image/jpeg', jpegQuality);
+  pdf.addImage(imgData, 'JPEG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
+  
+  const title = document.getElementById('dashboardTitle').value || 'Dashboard';
+  pdf.save(`${title}.pdf`);
 }

@@ -1,3 +1,100 @@
+/* Header y navegación */
+.app-header {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+  padding: 16px 24px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.brand-logo {
+  margin-right: 32px;
+}
+
+.logo-image {
+  height: 50px;
+  width: auto;
+}
+
+.main-menu {
+  display: flex;
+  gap: 16px;
+}
+
+.menu-btn {
+  background: rgba(255,255,255,0.1);
+  border: 2px solid rgba(255,255,255,0.3);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.menu-btn:hover {
+  background: rgba(255,255,255,0.2);
+  border-color: rgba(255,255,255,0.5);
+}
+
+.menu-btn.active {
+  background: rgba(255,255,255,0.2);
+  border-color: white;
+  font-weight: 600;
+}
+
+/* Interfaces */
+.interface-section {
+  width: 100%;
+}
+.print-modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.print-modal-content {
+  background: #fff;
+  border-radius: 10px;
+  padding: 32px 24px 24px 24px;
+  min-width: 600px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.print-options {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+.print-options label {
+  font-weight: 500;
+}
+.print-preview-area {
+  background: #f8f8f8;
+  border: 1px solid #ddd;
+  margin: 0 auto 16px auto;
+  padding: 16px;
+  min-height: 400px;
+  max-height: 50vh;
+  overflow: auto;
+}
+.print-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
 /* Reset y fuentes */
 * {
     margin: 0;

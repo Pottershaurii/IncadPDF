@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>INCAD Service - Organizador de Imágenes</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard-styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -13,15 +14,47 @@
             <div class="brand-logo">
                 <img src="FondoLogo.png" alt="Incad Service Logo" class="logo-image">
             </div>
-            <div class="brand-text">
-                <h1>INCAD SERVICE</h1>
-                <p>Organizador Pre-Reporte</p>
-            </div>
+            <nav class="main-menu">
+                <button id="organizadorBtn" class="menu-btn active" onclick="switchInterface('organizador')">
+                    Organizador Pre-Reporte
+                </button>
+                <button id="dashboardBtn" class="menu-btn" onclick="switchInterface('dashboard')">
+                    Dashboard
+                </button>
+            </nav>
         </div>
     </div>
 
     <div class="main-container">
-        <div class="controls-panel">
+        <!-- Interfaz Organizador Pre-Reporte -->
+        <div id="organizadorInterface" class="interface-section">
+            <!-- Modal de impresión -->
+            <div id="printModal" class="print-modal" style="display:none;">
+                <div class="print-modal-content">
+                    <h2>Vista previa de impresión</h2>
+                    <div class="print-options">
+                        <label>Orientación:
+                            <select id="printOrientation">
+                                <option value="portrait">Vertical (A4)</option>
+                                <option value="landscape">Horizontal (A4)</option>
+                            </select>
+                        </label>
+                        <label>Márgenes:
+                            <select id="printMargin">
+                                <option value="normal">Normales</option>
+                                <option value="narrow">Estrechos</option>
+                                <option value="none">Sin márgenes</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div id="printPreviewArea" class="print-preview-area"></div>
+                    <div class="print-modal-actions">
+                        <button onclick="closePrintModal()">Cancelar</button>
+                        <button onclick="confirmPrint()">Imprimir</button>
+                    </div>
+                </div>
+            </div>
+            <div class="controls-panel">
             <div class="control-group">
                 <label for="headerTitle">Título del Documento</label>
                 <input type="text" id="headerTitle" placeholder="Ingrese el título del documento">
@@ -68,22 +101,26 @@
             <div id="dividedControls" class="mode-controls" style="display: none;">
                 <div class="divided-mode-info">
                     <div class="info-card">
-                        <h3>Instrucciones - Modo Dividido</h3>
-                        <ol>
-                            <li>Selecciona "Impares" y carga todas las imágenes impares</li>
-                            <li>Selecciona "Pares" y carga todas las imágenes pares</li>
-                            <li>Las imágenes se renombrarán automáticamente y se intercalarán</li>
-                            <li>Los nombres se ajustarán según la secuencia (1,3,5... para impares / 2,4,6... para pares)</li>
-                        </ol>
-                        <h3>Instrucciones - Reiniciar Contador</h3>
-                        <ol>
-                            <li>Haber importado tus imágenes impares y pares</li>
-                            <li>Presiona "Reiniciar Contador"</li>
-                            <li>Selecciona "Impares" y carga todas las imágenes impares</li>
-                            <li>Vuelve a presionar "Reiniciar Contador"</li>
-                            <li>Selecciona "Pares" y carga todas las imágenes pares</li>
-                            <li>Los nombres se ajustarán y reiniciaran según la secuencia</li>
-                        </ol>
+                        <details>
+                            <summary>Instrucciones - Modo Dividido</summary>
+                            <ol>
+                                <li>Selecciona "Impares" y carga todas las imágenes impares</li>
+                                <li>Selecciona "Pares" y carga todas las imágenes pares</li>
+                                <li>Las imágenes se renombrarán automáticamente y se intercalarán</li>
+                                <li>Los nombres se ajustarán según la secuencia (1,3,5... para impares / 2,4,6... para pares)</li>
+                            </ol>
+                        </details>
+                        <details>
+                            <summary>Instrucciones - Reiniciar Contador</summary>
+                            <ol>
+                                <li>Haber importado tus imágenes impares y pares</li>
+                                <li>Presiona "Reiniciar Contador"</li>
+                                <li>Selecciona "Impares" y carga todas las imágenes impares</li>
+                                <li>Vuelve a presionar "Reiniciar Contador"</li>
+                                <li>Selecciona "Pares" y carga todas las imágenes pares</li>
+                                <li>Los nombres se ajustarán y reiniciaran según la secuencia</li>
+                            </ol>
+                        </details>
                     </div>
                 </div>
 
@@ -157,6 +194,16 @@
                     Exportar a PDF
                 </button>
 
+                <button onclick="printPreview()" class="export-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <path d="M8 6h8v2H8z"/>
+                        <path d="M8 10h8v2H8z"/>
+                        <path d="M8 14h8v2H8z"/>
+                    </svg>
+                    Imprimir Vista Previa
+                </button>
+
                 <button id="clearAllBtn" class="clear-btn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"/>
@@ -170,7 +217,6 @@
 
                 <button id="resetCounterBtn" class="clear-btn">Reiniciar Contador</button>
 
-
                 <div class="image-counter">
                     <span id="imageCount">Imágenes cargadas: 0</span>
                 </div>
@@ -179,6 +225,99 @@
 
         <div id="errorMessage" class="error-message"></div>
         <div id="pageContainer" class="page-container"></div>
+        </div>
+
+        <!-- Interfaz Dashboard -->
+        <div id="dashboardInterface" class="interface-section" style="display:none;">
+            <div class="dashboard-controls">
+                <div class="control-group">
+                    <label for="dashboardTitle">Título del Documento</label>
+                    <input type="text" id="dashboardTitle" placeholder="Ingrese el título del documento">
+                </div>
+
+                <div class="dashboard-upload-section">
+                    <div class="upload-group">
+                        <h3>Imágenes Impares</h3>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="dashboardOddInput" multiple accept="image/*">
+                            <label for="dashboardOddInput" class="file-input-label primary">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="17,8 12,3 7,8"/>
+                                    <line x1="12" y1="3" x2="12" y2="15"/>
+                                </svg>
+                                Importar Imágenes Impares
+                            </label>
+                        </div>
+                        <div class="image-selector">
+                            <label for="oddImageSelector">Seleccionar Imagen Impar:</label>
+                            <select id="oddImageSelector">
+                                <option value="">Seleccione una imagen...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="upload-group">
+                        <h3>Imágenes Pares</h3>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="dashboardEvenInput" multiple accept="image/*">
+                            <label for="dashboardEvenInput" class="file-input-label secondary">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="17,8 12,3 7,8"/>
+                                    <line x1="12" y1="3" x2="12" y2="15"/>
+                                </svg>
+                                Importar Imágenes Pares
+                            </label>
+                        </div>
+                        <div class="image-selector">
+                            <label for="evenImageSelector">Seleccionar Imagen Par:</label>
+                            <select id="evenImageSelector">
+                                <option value="">Seleccione una imagen...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="upload-group">
+                        <h3>Logo Cliente</h3>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="dashboardClientLogo" accept="image/*">
+                            <label for="dashboardClientLogo" class="file-input-label secondary">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <polyline points="21,15 16,10 5,21"/>
+                                </svg>
+                                Logo Cliente
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-actions">
+                    <button onclick="exportDashboardToPdf()" class="export-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7,10 12,15 17,10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Exportar a PDF
+                    </button>
+                    <button id="clearDashboardBtn" class="clear-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                            <path d="M10 11v6"/>
+                            <path d="M14 11v6"/>
+                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                        </svg>
+                        Limpiar Todo
+                    </button>
+                </div>
+            </div>
+
+            <div id="dashboardPreview" class="dashboard-preview"></div>
+        </div>
     </div>
 
     <!-- Librerías y script principal -->
